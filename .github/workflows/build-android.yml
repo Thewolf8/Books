@@ -26,8 +26,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22' # تحديث لـ Node 22 لتفادي التنبيه
           cache: 'npm'
+          cache-dependency-path: 'Books/package-lock.json' # تحديد مسار ملف الـ lock بدقة
 
       - name: Setup JDK
         uses: actions/setup-java@v4
@@ -41,23 +42,27 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/android/build.gradle*', '**/android/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          cd Books
+          npm ci
 
       - name: Type check
-        run: npm run type-check
+        run: |
+          cd Books
+          npm run type-check
 
       - name: Make Gradlew executable
-        run: chmod +x android/gradlew
+        run: chmod +x Books/android/gradlew
 
       - name: Build Debug APK
         if: github.event.inputs.build_type != 'release'
         run: |
-          cd android
+          cd Books/android
           ./gradlew assembleDebug --no-daemon
 
       - name: Build Release APK
@@ -69,8 +74,8 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           # Decode keystore from base64 secret
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/release.keystore
-          cd android
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > Books/android/release.keystore
+          cd Books/android
           ./gradlew assembleRelease --no-daemon
 
       - name: Upload Debug APK
@@ -78,7 +83,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: Books/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
 
       - name: Upload Release APK
@@ -86,7 +91,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: Books/android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
 
   lint-and-test:
@@ -98,14 +103,21 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22' # تحديث لـ Node 22
           cache: 'npm'
+          cache-dependency-path: 'Books/package-lock.json'
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          cd Books
+          npm ci
 
       - name: Run ESLint
-        run: npm run lint
+        run: |
+          cd Books
+          npm run lint
 
       - name: Run tests
-        run: npm test -- --coverage --watchAll=false
+        run: |
+          cd Books
+          npm test -- --coverage --watchAll=false
