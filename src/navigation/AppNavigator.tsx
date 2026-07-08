@@ -3,7 +3,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {useTranslation} from 'react-i18next';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {Platform, TouchableOpacity, StyleSheet} from 'react-native';
+import {Platform} from 'react-native';
 import {useTheme} from '@theme/ThemeProvider';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
@@ -16,7 +16,7 @@ import {SettingsScreen} from '@screens/SettingsScreen';
 
 export type RootStackParamList = {
   MainTabs: undefined;
-  AddBook: {bookId?: string};
+  AddBook: {bookId?: string} | undefined;
   BookDetail: {bookId: string};
   Reader: {bookId: string};
 };
@@ -29,14 +29,6 @@ export type MainTabParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
-
-const CustomTabBarButton: React.FC<any> = props => (
-  <TouchableOpacity
-    {...props}
-    style={styles.addButton}
-    activeOpacity={0.8}
-  />
-);
 
 const MainTabs: React.FC = () => {
   const {t} = useTranslation();
@@ -147,20 +139,3 @@ export const AppNavigator: React.FC = () => {
     </Stack.Navigator>
   );
 };
-
-const styles = StyleSheet.create({
-  addButton: {
-    top: -20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#6366f1',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-});

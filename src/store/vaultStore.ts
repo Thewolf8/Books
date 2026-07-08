@@ -9,10 +9,10 @@ interface VaultState {
   selectedHighlightId: string | null;
 
   // Actions
-  loadHighlights: () => void;
-  setFilters: (filters: Partial<VaultFilters>) => void;
+  loadHighlights: () => Promise<void>;
+  setFilters: (filters: Partial<VaultFilters>) => Promise<void>;
   resetFilters: () => void;
-  deleteHighlight: (id: string) => void;
+  deleteHighlight: (id: string) => Promise<void>;
   setSelectedHighlightId: (id: string | null) => void;
   searchHighlights: (query: string) => void;
 }
@@ -33,10 +33,10 @@ export const useVaultStore = create<VaultState>((set, get) => ({
   isLoading: false,
   selectedHighlightId: null,
 
-  loadHighlights: () => {
+  loadHighlights: async () => {
     set({isLoading: true});
     try {
-      const highlights = HighlightRepo.getAllHighlights();
+      const highlights = await HighlightRepo.getAllHighlights();
       set({highlights, isLoading: false});
     } catch (err) {
       set({isLoading: false});
@@ -44,17 +44,16 @@ export const useVaultStore = create<VaultState>((set, get) => ({
     }
   },
 
-  setFilters: (partial: Partial<VaultFilters>) => {
-    set(state => {
-      const filters = {...state.filters, ...partial};
-      // Auto-apply filter
-      try {
-        const highlights = HighlightRepo.getFilteredHighlights(filters);
-        return {filters, highlights};
-      } catch {
-        return {filters};
-      }
-    });
+  setFilters: async (partial: Partial<VaultFilters>) => {
+    const filters = {...get().filters, ...partial};
+    set({filters});
+    // Auto-apply filter
+    try {
+      const highlights = await HighlightRepo.getFilteredHighlights(filters);
+      set({highlights});
+    } catch (err) {
+      console.error('Failed to filter highlights:', err);
+    }
   },
 
   resetFilters: () => {
@@ -62,8 +61,8 @@ export const useVaultStore = create<VaultState>((set, get) => ({
     get().loadHighlights();
   },
 
-  deleteHighlight: (id: string) => {
-    HighlightRepo.deleteHighlight(id);
+  deleteHighlight: async (id: string) => {
+    await HighlightRepo.deleteHighlight(id);
     set(state => ({
       highlights: state.highlights.filter(h => h.id !== id),
       selectedHighlightId: state.selectedHighlightId === id ? null : state.selectedHighlightId,

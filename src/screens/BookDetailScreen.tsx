@@ -42,10 +42,12 @@ export const BookDetailScreen: React.FC = () => {
 
   useEffect(() => {
     if (bookId) {
-      const tags = getBookTags(bookId);
-      setBookTags(tags);
-      const highlights = getHighlightsForBook(bookId);
-      setHighlightsCount(highlights.length);
+      (async () => {
+        const tags = await getBookTags(bookId);
+        setBookTags(tags);
+        const highlights = await getHighlightsForBook(bookId);
+        setHighlightsCount(highlights.length);
+      })();
     }
   }, [bookId, getBookTags]);
 

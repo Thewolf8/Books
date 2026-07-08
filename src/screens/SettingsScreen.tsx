@@ -44,8 +44,8 @@ const ARABIC_FONTS = [
 ];
 
 export const SettingsScreen: React.FC = () => {
-  const {t, i18n} = useTranslation();
-  const {colors, fonts, isDark} = useTheme();
+  const {t} = useTranslation();
+  const {colors, fonts} = useTheme();
 
   const theme = useAppStore(state => state.theme);
   const language = useAppStore(state => state.language);

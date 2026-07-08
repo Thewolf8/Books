@@ -9,6 +9,7 @@ import {
   Modal,
   Alert,
   Clipboard,
+  ActivityIndicator,
 } from 'react-native';
 import {useTranslation} from 'react-i18next';
 import {useNavigation} from '@react-navigation/native';
@@ -43,7 +44,7 @@ export const VaultScreen: React.FC = () => {
 
   useEffect(() => {
     loadHighlights();
-  }, []);
+  }, [loadHighlights]);
 
   const handleSearch = useCallback((text: string) => {
     setSearchQuery(text);
@@ -71,7 +72,10 @@ export const VaultScreen: React.FC = () => {
   }, [t]);
 
   const renderSnippetCard = ({item}: {item: HighlightWithBook}) => (
-    <View style={[styles.card, {backgroundColor: colors.surface}]}>
+    <TouchableOpacity
+      activeOpacity={0.85}
+      style={[styles.card, {backgroundColor: colors.surface}]}
+      onPress={() => navigation.navigate('Reader', {bookId: item.bookId})}>
       <View style={styles.cardHeader}>
         <View style={[styles.colorDot, {backgroundColor: item.color}]} />
         <View style={styles.cardMeta}>
@@ -111,7 +115,7 @@ export const VaultScreen: React.FC = () => {
           </Text>
         </View>
       ) : null}
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -183,13 +187,19 @@ export const VaultScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         renderItem={renderSnippetCard}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Icon name="bookmark-outline" size={64} color={colors.textMuted} />
-            <Text style={[styles.emptyText, {color: colors.text}]}>{t('vault.noResults')}</Text>
-            <Text style={[styles.emptySubtext, {color: colors.textMuted}]}>
-              {t('reader.noHighlightsOnPage')}
-            </Text>
-          </View>
+          isLoading ? (
+            <View style={styles.emptyContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Icon name="bookmark-outline" size={64} color={colors.textMuted} />
+              <Text style={[styles.emptyText, {color: colors.text}]}>{t('vault.noResults')}</Text>
+              <Text style={[styles.emptySubtext, {color: colors.textMuted}]}>
+                {t('reader.noHighlightsOnPage')}
+              </Text>
+            </View>
+          )
         }
       />
 

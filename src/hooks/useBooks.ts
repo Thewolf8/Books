@@ -1,6 +1,6 @@
 import {useEffect, useState, useCallback} from 'react';
 import {useLibraryStore} from '@store/libraryStore';
-import type {Book, BookFormData, Tag} from '@types';
+import type {Book, Tag} from '@types';
 
 export const useBooks = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -12,13 +12,15 @@ export const useBooks = () => {
   const getBookTags = useLibraryStore(state => state.getBookTags);
 
   useEffect(() => {
-    loadBooks();
-    setIsLoading(false);
-  }, []);
+    (async () => {
+      await loadBooks();
+      setIsLoading(false);
+    })();
+  }, [loadBooks]);
 
-  const getBookWithTags = useCallback((bookId: string): {book: Book | null; tags: Tag[]} => {
+  const getBookWithTags = useCallback(async (bookId: string): Promise<{book: Book | null; tags: Tag[]}> => {
     const book = books.find(b => b.id === bookId) || null;
-    const tags = book ? getBookTags(bookId) : [];
+    const tags = book ? await getBookTags(bookId) : [];
     return {book, tags};
   }, [books, getBookTags]);
 
@@ -42,8 +44,10 @@ export const useBook = (bookId: string | null) => {
 
   useEffect(() => {
     if (bookId) {
-      const bookTags = getBookTags(bookId);
-      setTags(bookTags);
+      (async () => {
+        const bookTags = await getBookTags(bookId);
+        setTags(bookTags);
+      })();
     }
   }, [bookId, getBookTags]);
 

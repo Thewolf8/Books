@@ -16,10 +16,10 @@ interface ReaderState {
   setCurrentPage: (page: number) => void;
   nextPage: () => void;
   prevPage: () => void;
-  loadHighlights: (bookId: string, pageNumber?: number) => void;
+  loadHighlights: (bookId: string, pageNumber?: number) => Promise<void>;
   addHighlight: (data: Omit<Highlight, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Highlight>;
-  updateHighlight: (id: string, updates: Partial<Pick<Highlight, 'comment' | 'color'>>) => void;
-  deleteHighlight: (id: string) => void;
+  updateHighlight: (id: string, updates: Partial<Pick<Highlight, 'comment' | 'color'>>) => Promise<void>;
+  deleteHighlight: (id: string) => Promise<void>;
   setIsAnnotating: (value: boolean) => void;
   setSelectedHighlightId: (id: string | null) => void;
   setShowHighlightsPanel: (value: boolean) => void;
@@ -69,11 +69,11 @@ export const useReaderStore = create<ReaderState>((set, get) => ({
     }
   },
 
-  loadHighlights: (bookId: string, pageNumber?: number) => {
+  loadHighlights: async (bookId: string, pageNumber?: number) => {
     try {
       const highlights = pageNumber
-        ? HighlightRepo.getHighlightsForPage(bookId, pageNumber)
-        : HighlightRepo.getHighlightsForBook(bookId);
+        ? await HighlightRepo.getHighlightsForPage(bookId, pageNumber)
+        : await HighlightRepo.getHighlightsForBook(bookId);
       set({highlights});
     } catch (err) {
       console.error('Failed to load highlights:', err);
@@ -86,8 +86,8 @@ export const useReaderStore = create<ReaderState>((set, get) => ({
     return highlight;
   },
 
-  updateHighlight: (id, updates) => {
-    HighlightRepo.updateHighlight(id, updates);
+  updateHighlight: async (id, updates) => {
+    await HighlightRepo.updateHighlight(id, updates);
     set(state => ({
       highlights: state.highlights.map(h =>
         h.id === id ? {...h, ...updates, updatedAt: Date.now()} : h,
@@ -95,8 +95,8 @@ export const useReaderStore = create<ReaderState>((set, get) => ({
     }));
   },
 
-  deleteHighlight: (id: string) => {
-    HighlightRepo.deleteHighlight(id);
+  deleteHighlight: async (id: string) => {
+    await HighlightRepo.deleteHighlight(id);
     set(state => ({
       highlights: state.highlights.filter(h => h.id !== id),
       selectedHighlightId: state.selectedHighlightId === id ? null : state.selectedHighlightId,

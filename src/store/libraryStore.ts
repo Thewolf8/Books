@@ -14,21 +14,21 @@ interface LibraryState {
   error: string | null;
 
   // Actions
-  loadBooks: () => void;
-  loadTags: () => void;
+  loadBooks: () => Promise<void>;
+  loadTags: () => Promise<void>;
   addBook: (data: BookFormData) => Promise<Book>;
   updateBook: (id: string, data: Partial<BookFormData>) => Promise<Book>;
-  deleteBook: (id: string) => void;
+  deleteBook: (id: string) => Promise<void>;
   selectBook: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
   setFilterType: (type: 'all' | 'physical' | 'digital') => void;
   setSortBy: (sort: 'recent' | 'title' | 'author' | 'rating') => void;
   createTag: (name: string, color: string) => Promise<Tag>;
-  deleteTag: (id: string) => void;
-  getBookTags: (bookId: string) => Tag[];
-  addTagToBook: (bookId: string, tagId: string) => void;
-  removeTagFromBook: (bookId: string, tagId: string) => void;
-  updateReadingProgress: (bookId: string, page: number) => void;
+  deleteTag: (id: string) => Promise<void>;
+  getBookTags: (bookId: string) => Promise<Tag[]>;
+  addTagToBook: (bookId: string, tagId: string) => Promise<void>;
+  removeTagFromBook: (bookId: string, tagId: string) => Promise<void>;
+  updateReadingProgress: (bookId: string, page: number) => Promise<void>;
   getFilteredBooks: () => Book[];
 }
 
@@ -42,19 +42,19 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   isLoading: false,
   error: null,
 
-  loadBooks: () => {
+  loadBooks: async () => {
     set({isLoading: true, error: null});
     try {
-      const books = BookRepo.getAllBooks();
+      const books = await BookRepo.getAllBooks();
       set({books, isLoading: false});
     } catch (err) {
       set({error: 'Failed to load books', isLoading: false});
     }
   },
 
-  loadTags: () => {
+  loadTags: async () => {
     try {
-      const tags = TagRepo.getAllTags();
+      const tags = await TagRepo.getAllTags();
       set({tags});
     } catch (err) {
       console.error('Failed to load tags:', err);
@@ -75,8 +75,8 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     return book;
   },
 
-  deleteBook: (id: string) => {
-    BookRepo.deleteBook(id);
+  deleteBook: async (id: string) => {
+    await BookRepo.deleteBook(id);
     set(state => ({
       books: state.books.filter(b => b.id !== id),
       selectedBookId: state.selectedBookId === id ? null : state.selectedBookId,
@@ -97,25 +97,25 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
     return tag;
   },
 
-  deleteTag: (id: string) => {
-    TagRepo.deleteTag(id);
+  deleteTag: async (id: string) => {
+    await TagRepo.deleteTag(id);
     set(state => ({tags: state.tags.filter(t => t.id !== id)}));
   },
 
-  getBookTags: (bookId: string) => {
+  getBookTags: async (bookId: string) => {
     return TagRepo.getTagsForBook(bookId);
   },
 
-  addTagToBook: (bookId: string, tagId: string) => {
-    TagRepo.addTagToBook(bookId, tagId);
+  addTagToBook: async (bookId: string, tagId: string) => {
+    await TagRepo.addTagToBook(bookId, tagId);
   },
 
-  removeTagFromBook: (bookId: string, tagId: string) => {
-    TagRepo.removeTagFromBook(bookId, tagId);
+  removeTagFromBook: async (bookId: string, tagId: string) => {
+    await TagRepo.removeTagFromBook(bookId, tagId);
   },
 
-  updateReadingProgress: (bookId: string, page: number) => {
-    BookRepo.updateReadingProgress(bookId, page);
+  updateReadingProgress: async (bookId: string, page: number) => {
+    await BookRepo.updateReadingProgress(bookId, page);
     set(state => ({
       books: state.books.map(b =>
         b.id === bookId ? {...b, currentPage: page, lastReadAt: Date.now()} : b,

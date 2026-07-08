@@ -91,7 +91,6 @@ export const LibraryScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const [refreshing, setRefreshing] = useState(false);
 
-  const books = useLibraryStore(state => state.books);
   const searchQuery = useLibraryStore(state => state.searchQuery);
   const filterType = useLibraryStore(state => state.filterType);
   const sortBy = useLibraryStore(state => state.sortBy);
@@ -107,13 +106,13 @@ export const LibraryScreen: React.FC = () => {
 
   useEffect(() => {
     loadBooks();
-  }, []);
+  }, [loadBooks]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadBooks();
     setTimeout(() => setRefreshing(false), 500);
-  }, []);
+  }, [loadBooks]);
 
   const handleBookPress = (book: Book) => {
     selectBook(book.id);

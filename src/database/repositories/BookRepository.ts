@@ -24,7 +24,7 @@ export const createBook = async (data: BookFormData): Promise<Book> => {
   const id = uuid.v4() as string;
   const now = Date.now();
 
-  db.execute(
+  await db.execute(
     `INSERT INTO books (id, title, author, description, cover_image_path, type, file_path, total_pages, current_page, summary, review, rating, created_at, updated_at, last_read_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, NULL)`,
     [
@@ -47,11 +47,11 @@ export const createBook = async (data: BookFormData): Promise<Book> => {
   // Insert tags
   if (data.tags && data.tags.length > 0) {
     for (const tagId of data.tags) {
-      db.execute('INSERT OR IGNORE INTO book_tags (book_id, tag_id) VALUES (?, ?)', [id, tagId]);
+      await db.execute('INSERT OR IGNORE INTO book_tags (book_id, tag_id) VALUES (?, ?)', [id, tagId]);
     }
   }
 
-  return getBookById(id)!;
+  return (await getBookById(id))!;
 };
 
 export const updateBook = async (id: string, data: Partial<BookFormData>): Promise<Book> => {
@@ -72,44 +72,44 @@ export const updateBook = async (id: string, data: Partial<BookFormData>): Promi
   sets.push('updated_at = ?'); values.push(now);
   values.push(id);
 
-  db.execute(`UPDATE books SET ${sets.join(', ')} WHERE id = ?`, values);
+  await db.execute(`UPDATE books SET ${sets.join(', ')} WHERE id = ?`, values);
 
   // Update tags if provided
   if (data.tags !== undefined) {
-    db.execute('DELETE FROM book_tags WHERE book_id = ?', [id]);
+    await db.execute('DELETE FROM book_tags WHERE book_id = ?', [id]);
     for (const tagId of data.tags) {
-      db.execute('INSERT OR IGNORE INTO book_tags (book_id, tag_id) VALUES (?, ?)', [id, tagId]);
+      await db.execute('INSERT OR IGNORE INTO book_tags (book_id, tag_id) VALUES (?, ?)', [id, tagId]);
     }
   }
 
-  return getBookById(id)!;
+  return (await getBookById(id))!;
 };
 
 export const deleteBook = async (id: string): Promise<void> => {
-  db.execute('DELETE FROM books WHERE id = ?', [id]);
+  await db.execute('DELETE FROM books WHERE id = ?', [id]);
 };
 
-export const getBookById = (id: string): Book | null => {
-  const result = db.execute('SELECT * FROM books WHERE id = ?', [id]);
+export const getBookById = async (id: string): Promise<Book | null> => {
+  const result = await db.execute('SELECT * FROM books WHERE id = ?', [id]);
   if (!result.rows || result.rows.length === 0) return null;
   return rowToBook(result.rows[0]);
 };
 
-export const getAllBooks = (): Book[] => {
-  const result = db.execute('SELECT * FROM books ORDER BY updated_at DESC');
+export const getAllBooks = async (): Promise<Book[]> => {
+  const result = await db.execute('SELECT * FROM books ORDER BY updated_at DESC');
   if (!result.rows) return [];
   return result.rows.map(rowToBook);
 };
 
-export const getBooksByType = (type: Book['type']): Book[] => {
-  const result = db.execute('SELECT * FROM books WHERE type = ? ORDER BY updated_at DESC', [type]);
+export const getBooksByType = async (type: Book['type']): Promise<Book[]> => {
+  const result = await db.execute('SELECT * FROM books WHERE type = ? ORDER BY updated_at DESC', [type]);
   if (!result.rows) return [];
   return result.rows.map(rowToBook);
 };
 
-export const searchBooks = (query: string): Book[] => {
+export const searchBooks = async (query: string): Promise<Book[]> => {
   const like = `%${query}%`;
-  const result = db.execute(
+  const result = await db.execute(
     'SELECT * FROM books WHERE title LIKE ? OR author LIKE ? ORDER BY title ASC',
     [like, like],
   );
@@ -117,15 +117,15 @@ export const searchBooks = (query: string): Book[] => {
   return result.rows.map(rowToBook);
 };
 
-export const updateReadingProgress = (id: string, currentPage: number): void => {
-  db.execute(
+export const updateReadingProgress = async (id: string, currentPage: number): Promise<void> => {
+  await db.execute(
     'UPDATE books SET current_page = ?, last_read_at = ?, updated_at = ? WHERE id = ?',
     [currentPage, Date.now(), Date.now(), id],
   );
 };
 
-export const getBookTags = (bookId: string) => {
-  const result = db.execute(
+export const getBookTags = async (bookId: string) => {
+  const result = await db.execute(
     `SELECT t.* FROM tags t
      INNER JOIN book_tags bt ON t.id = bt.tag_id
      WHERE bt.book_id = ?`,
@@ -134,8 +134,8 @@ export const getBookTags = (bookId: string) => {
   return result.rows || [];
 };
 
-export const getBooksWithTag = (tagId: string): Book[] => {
-  const result = db.execute(
+export const getBooksWithTag = async (tagId: string): Promise<Book[]> => {
+  const result = await db.execute(
     `SELECT b.* FROM books b
      INNER JOIN book_tags bt ON b.id = bt.book_id
      WHERE bt.tag_id = ? ORDER BY b.updated_at DESC`,

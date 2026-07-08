@@ -27,12 +27,6 @@ type RouteProps = RouteProp<RootStackParamList, 'AddBook'>;
 
 const DEFAULT_COVER = 'https://via.placeholder.com/200x280/6366f1/ffffff?text=📖';
 
-const TAG_PRESETS = [
-  {name: 'Liked', color: '#22c55e', key: 'liked'},
-  {name: 'Disliked', color: '#ef4444', key: 'disliked'},
-  {name: 'No Comment', color: '#9ca3af', key: 'no-comment'},
-];
-
 export const AddBookScreen: React.FC = () => {
   const {t} = useTranslation();
   const {colors, fonts} = useTheme();
@@ -56,12 +50,11 @@ export const AddBookScreen: React.FC = () => {
   const [review, setReview] = useState('');
   const [rating, setRating] = useState(0);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [newTagName, setNewTagName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     loadTags();
-  }, []);
+  }, [loadTags]);
 
   // Load existing book data if editing
   useEffect(() => {

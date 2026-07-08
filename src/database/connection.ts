@@ -9,5 +9,9 @@ export const executeQuery = (sql: string, params?: any[]) => {
 };
 
 export const executeTransaction = (queries: {sql: string; params?: any[]}[]) => {
-  return db.transaction(queries);
+  return db.transaction(async tx => {
+    for (const query of queries) {
+      await tx.execute(query.sql, query.params);
+    }
+  });
 };

@@ -58,7 +58,7 @@ const App: React.FC = () => {
     };
 
     init();
-  }, []);
+  }, [setLanguage, setTheme, setCustomColors, setFonts]);
 
   // Force RTL for Arabic
   useEffect(() => {

@@ -10,6 +10,7 @@ import {
   Alert,
   Dimensions,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 import {useTranslation} from 'react-i18next';
 import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
@@ -18,10 +19,9 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {useTheme} from '@theme/ThemeProvider';
 import {useLibraryStore} from '@store/libraryStore';
 import {useReaderStore} from '@store/readerStore';
-import {getHighlightsForPage, deleteHighlight} from '@database/repositories/HighlightRepository';
 import {updateReadingProgress} from '@database/repositories/BookRepository';
 import type {RootStackParamList} from '@navigation/AppNavigator';
-import type {Highlight, Book} from '@types';
+import type {Book} from '@types';
 
 type RouteProps = RouteProp<RootStackParamList, 'Reader'>;
 
@@ -66,7 +66,6 @@ export const ReaderScreen: React.FC = () => {
   const [showControls, setShowControls] = useState(true);
   const [showGoToModal, setShowGoToModal] = useState(false);
   const [showAddNoteModal, setShowAddNoteModal] = useState(false);
-  const [showHighlightList, setShowHighlightList] = useState(false);
   const [goToPage, setGoToPage] = useState('');
   const [noteText, setNoteText] = useState('');
   const [selectedHighlightColor, setSelectedHighlightColor] = useState(HIGHLIGHT_COLORS[0]);
@@ -83,9 +82,11 @@ export const ReaderScreen: React.FC = () => {
       // Save progress on unmount
       if (bookId && currentPage > 0) {
         updateReadingProgress(bookId, currentPage);
-        updateReadingProgress(bookId, currentPage);
       }
     };
+    // This effect must only run when the book changes, not on every page
+    // turn (which would otherwise reset the reader position on each swipe).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookId]);
 
   // Load highlights for current page
@@ -93,7 +94,7 @@ export const ReaderScreen: React.FC = () => {
     if (bookId) {
       loadHighlights(bookId, currentPage);
     }
-  }, [bookId, currentPage]);
+  }, [bookId, currentPage, loadHighlights]);
 
   // Convert stored highlights to overlay format
   useEffect(() => {
@@ -110,7 +111,7 @@ export const ReaderScreen: React.FC = () => {
     setOverlayHighlights(overlays);
   }, [highlights]);
 
-  const handlePageChange = useCallback((page: number, total: number) => {
+  const handlePageChange = useCallback((page: number, _total: number) => {
     setCurrentPage(page);
     if (bookId) {
       updateBookProgress(bookId, page);
@@ -211,7 +212,10 @@ export const ReaderScreen: React.FC = () => {
       {/* PDF Viewer */}
       <TouchableOpacity
         style={styles.pdfContainer}
-        onPress={toggleControls}
+        onPress={e => {
+          handleTapOnPage(e);
+          toggleControls();
+        }}
         activeOpacity={1}>
         <Pdf
           ref={pdfRef}
@@ -229,10 +233,9 @@ export const ReaderScreen: React.FC = () => {
           horizontal={false}
           spacing={10}
           fitPolicy={2}
-          activityIndicatorProps={{
-            color: colors.primary,
-            progressTintColor: colors.primary,
-          }}
+          renderActivityIndicator={() => (
+            <ActivityIndicator size="large" color={colors.primary} />
+          )}
         />
 
         {/* Highlight Overlays */}

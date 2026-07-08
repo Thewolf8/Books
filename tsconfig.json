@@ -4,7 +4,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
+      "@types": ["src/types/index.ts"],
       "@types/*": ["src/types/*"],
+      "@i18n": ["src/i18n/index.ts"],
       "@components/*": ["src/components/*"],
       "@screens/*": ["src/screens/*"],
       "@navigation/*": ["src/navigation/*"],

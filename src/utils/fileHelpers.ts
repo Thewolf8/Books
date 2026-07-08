@@ -1,5 +1,4 @@
 import RNFS from 'react-native-fs';
-import {Platform} from 'react-native';
 
 const APP_DIR = RNFS.DocumentDirectoryPath;
 const COVERS_DIR = `${APP_DIR}/covers`;

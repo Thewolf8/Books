@@ -1,6 +1,5 @@
-import {useEffect, useState, useCallback} from 'react';
+import {useEffect, useCallback} from 'react';
 import {useVaultStore} from '@store/vaultStore';
-import type {HighlightWithBook, VaultFilters} from '@types';
 
 export const useHighlights = (bookId?: string) => {
   const highlights = useVaultStore(state => state.highlights);
@@ -15,7 +14,7 @@ export const useHighlights = (bookId?: string) => {
     } else {
       loadHighlights();
     }
-  }, [bookId]);
+  }, [bookId, loadHighlights, setFilters]);
 
   const search = useCallback((query: string) => {
     setFilters({searchQuery: query});
