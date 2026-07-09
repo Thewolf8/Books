@@ -92,13 +92,6 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
-        release {
-            // CI/CD should provide these via environment variables
-            storeFile file(System.getenv("ANDROID_KEYSTORE_PATH") ?: "release.keystore")
-            storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: ""
-            keyAlias System.getenv("ANDROID_KEY_ALIAS") ?: ""
-            keyPassword System.getenv("ANDROID_KEY_PASSWORD") ?: ""
-        }
     }
 
     buildTypes {
@@ -106,7 +99,9 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.release
+            // No signingConfig assigned on purpose: this produces an
+            // UNSIGNED release APK (app-release-unsigned.apk). Sign it
+            // locally with your own keystore before installing/publishing.
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
