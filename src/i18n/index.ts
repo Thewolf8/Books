@@ -1,7 +1,7 @@
 import i18n from 'i18next';
 import {initReactI18next} from 'react-i18next';
 import {I18nManager} from 'react-native';
-import RNLocalize from 'react-native-localize';
+import {getLocales} from 'react-native-localize';
 import en from './en.json';
 import ar from './ar.json';
 import fr from './fr.json';
@@ -14,7 +14,7 @@ const resources = {
 
 // Detect system language
 const getSystemLanguage = (): string => {
-  const locales = RNLocalize.getLocales();
+  const locales = getLocales();
   const lang = locales[0]?.languageCode;
   if (lang === 'ar') return 'ar';
   if (lang === 'fr') return 'fr';
