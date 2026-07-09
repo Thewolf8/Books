@@ -60,16 +60,9 @@ jobs:
           cd android
           ./gradlew assembleDebug --no-daemon
 
-      - name: Build Release APK
+      - name: Build Release APK (unsigned)
         if: github.event.inputs.build_type == 'release'
-        env:
-          ANDROID_KEYSTORE_PATH: ${{ secrets.ANDROID_KEYSTORE_PATH }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          # Decode keystore from base64 secret
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/release.keystore
           cd android
           ./gradlew assembleRelease --no-daemon
 
@@ -81,12 +74,12 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
 
-      - name: Upload Release APK
+      - name: Upload Release APK (unsigned)
         if: github.event.inputs.build_type == 'release'
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: android/app/build/outputs/apk/release/app-release.apk
+          name: app-release-unsigned
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
           retention-days: 30
 
   lint-and-test:
