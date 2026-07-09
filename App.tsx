@@ -9,7 +9,7 @@ import {ThemeProvider} from '@theme/ThemeProvider';
 import {initializeDatabase} from '@database/init';
 import {useAppStore} from '@store/appStore';
 import {loadStoredSettings} from '@database/repositories/SettingRepository';
-import RNLocalize from 'react-native-localize';
+import {getLocales} from 'react-native-localize';
 
 const AppContent: React.FC = () => {
   return (
@@ -40,7 +40,7 @@ const App: React.FC = () => {
           setLanguage(settings.language);
         } else {
           // Default to system language
-          const locales = RNLocalize.getLocales();
+          const locales = getLocales();
           const sysLang = locales[0]?.languageCode;
           if (sysLang === 'ar') setLanguage('ar');
           else if (sysLang === 'fr') setLanguage('fr');
