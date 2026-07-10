@@ -45,8 +45,13 @@ export const useReaderStore = create<ReaderState>((set, get) => ({
   },
 
   setCurrentPage: (page: number) => {
-    const {totalPages} = get();
-    const clamped = Math.max(1, Math.min(page, totalPages));
+    // Only guard the lower bound. The upper bound must NOT be clamped
+    // against `totalPages` here: this value comes from the Pdf component
+    // itself reporting where it actually navigated to, and our stored
+    // `totalPages` can be stale/wrong (e.g. right after opening a book
+    // whose page count hasn't been corrected yet) which would otherwise
+    // snap real navigation back to page 1.
+    const clamped = Math.max(1, page);
     set({currentPage: clamped});
     get().loadHighlights(get().currentBookId!, clamped);
   },
