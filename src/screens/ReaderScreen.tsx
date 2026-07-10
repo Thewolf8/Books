@@ -51,6 +51,7 @@ export const ReaderScreen: React.FC = () => {
 
   const books = useLibraryStore(state => state.books);
   const updateBookProgress = useLibraryStore(state => state.updateReadingProgress);
+  const updateBook = useLibraryStore(state => state.updateBook);
 
   const currentPage = useReaderStore(state => state.currentPage);
   const totalPages = useReaderStore(state => state.totalPages);
@@ -227,6 +228,9 @@ export const ReaderScreen: React.FC = () => {
           onLoadComplete={(total) => {
             if (totalPages !== total) {
               setCurrentBook(book.id, total, currentPage);
+            }
+            if (book.totalPages !== total) {
+              updateBook(book.id, {totalPages: total});
             }
           }}
           enablePaging
