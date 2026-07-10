@@ -224,7 +224,13 @@ export const ReaderScreen: React.FC = () => {
           style={[styles.pdf, {backgroundColor: colors.readerBackground}]}
           page={currentPage}
           onPageChanged={handlePageChange}
-          onError={(error) => console.log('PDF Error:', error)}
+          onError={(error: any) => {
+            console.log('PDF Error:', error);
+            Alert.alert(
+              'PDF Load Error',
+              String(error?.message || error),
+            );
+          }}
           onLoadComplete={(total) => {
             if (totalPages !== total) {
               setCurrentBook(book.id, total, currentPage);
