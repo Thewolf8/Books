@@ -15,7 +15,6 @@ import {
 import {useTranslation} from 'react-i18next';
 import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import Pdf from 'react-native-pdf';
-import RNFS from 'react-native-fs';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useTheme} from '@theme/ThemeProvider';
 import {useLibraryStore} from '@store/libraryStore';
@@ -75,19 +74,6 @@ export const ReaderScreen: React.FC = () => {
   const [overlayHighlights, setOverlayHighlights] = useState<HighlightOverlay[]>([]);
 
   const book: Book | undefined = books.find(b => b.id === bookId);
-
-  useEffect(() => {
-    if (book?.filePath) {
-      RNFS.stat(book.filePath.replace(/^file:\/\//i, ''))
-        .then(stat => {
-          Alert.alert('PDF file (debug)', `path: ${book.filePath}\nsize: ${stat.size} bytes`);
-        })
-        .catch(err => {
-          Alert.alert('PDF file (debug) - STAT FAILED', `path: ${book.filePath}\nerror: ${err?.message || err}`);
-        });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [book?.filePath]);
 
   useEffect(() => {
     if (book) {
@@ -245,11 +231,7 @@ export const ReaderScreen: React.FC = () => {
               String(error?.message || error),
             );
           }}
-          onLoadComplete={(total, filePath) => {
-            Alert.alert(
-              'PDF Loaded (debug)',
-              `reported pages: ${total}\nfilePath prop: ${book.filePath}\nresolved path: ${filePath}`,
-            );
+          onLoadComplete={(total) => {
             if (totalPages !== total) {
               setCurrentBook(book.id, total, currentPage);
             }

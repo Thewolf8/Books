@@ -1,0 +1,75 @@
+diff --git a/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java b/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
+index 7b7a125..b625d44 100644
+--- a/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
++++ b/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
+@@ -12,6 +12,8 @@ import java.io.File;
+ 
+ import android.content.ContentResolver;
+ import android.content.Context;
++import android.os.Handler;
++import android.os.Looper;
+ import android.util.SizeF;
+ import android.view.View;
+ import android.view.ViewGroup;
+@@ -105,7 +107,7 @@ public class PdfView extends PDFView implements OnPageChangeListener,OnLoadCompl
+         TopChangeEvent tce = new TopChangeEvent(surfaceId, getId(), event);
+ 
+         if (dispatcher != null) {
+-            dispatcher.dispatchEvent(tce);
++            new Handler(Looper.getMainLooper()).postDelayed(() -> dispatcher.dispatchEvent(tce), 10);
+         }
+ 
+ //        ReactContext reactContext = (ReactContext)this.getContext();
+@@ -139,16 +141,26 @@ public class PdfView extends PDFView implements OnPageChangeListener,OnLoadCompl
+ 
+     @Override
+     public void loadComplete(int numberOfPages) {
+-        SizeF pageSize = getPageSize(0);
+-        float width = pageSize.getWidth();
+-        float height = pageSize.getHeight();
++        // getPageSize()/getTableOfContents() can throw for some PDFs/pdfium
++        // states; if that happens we still want to report a successful load
++        // with the correct page count instead of silently never firing
++        // onLoadComplete (which otherwise looks like "the file has 1 page").
++        float width = 0;
++        float height = 0;
++        String tocJson = "[]";
++        try {
++            SizeF pageSize = getPageSize(0);
++            width = pageSize.getWidth();
++            height = pageSize.getHeight();
++            this.zoomTo(this.scale);
++            Gson gson = new Gson();
++            tocJson = gson.toJson(this.getTableOfContents());
++        } catch (Exception e) {
++            Log.e("PdfView", "loadComplete: failed to read page size/table of contents, continuing with numberOfPages only", e);
++        }
+ 
+-        this.zoomTo(this.scale);
+         WritableMap event = Arguments.createMap();
+-
+-        //create a new json Object for the TableOfContents
+-        Gson gson = new Gson();
+-        event.putString("message", "loadComplete|"+numberOfPages+"|"+width+"|"+height+"|"+gson.toJson(this.getTableOfContents()));
++        event.putString("message", "loadComplete|"+numberOfPages+"|"+width+"|"+height+"|"+tocJson);
+ 
+         ThemedReactContext context = (ThemedReactContext) getContext();
+         EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, getId());
+@@ -157,7 +169,7 @@ public class PdfView extends PDFView implements OnPageChangeListener,OnLoadCompl
+         TopChangeEvent tce = new TopChangeEvent(surfaceId, getId(), event);
+ 
+         if (dispatcher != null) {
+-            dispatcher.dispatchEvent(tce);
++            new Handler(Looper.getMainLooper()).postDelayed(() -> dispatcher.dispatchEvent(tce), 10);
+         }
+         //        ReactContext reactContext = (ReactContext)this.getContext();
+ //        reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
+@@ -166,8 +178,6 @@ public class PdfView extends PDFView implements OnPageChangeListener,OnLoadCompl
+ //            event
+ //         );
+ 
+-        //Log.e("ReactNative", gson.toJson(this.getTableOfContents()));
+-
+     }
+ 
+     @Override
